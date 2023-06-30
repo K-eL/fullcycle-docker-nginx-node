@@ -2,29 +2,28 @@ version: '3.1'
 
 services:
   nginx:
-    image: cthor81/fullcycle-docker-node-nginx
+    build: ./nginx
     container_name: nginx
     networks:
       - node-network
     ports:
       - "8080:80"
+    depends_on:
+      - app
   app:
-    image: cthor81/fullcycle-docker-node-node
+    build: ./node
     container_name: node
     working_dir: /usr/src/app
     tty: true
     volumes:
       - ./node:/usr/src/app
-    entrypoint: dockerize -wait tcp://mysql:3306 -timeout 20s docker-entrypoint.sh
-    command: npm run start
+    entrypoint: dockerize -wait tcp://mysql:3306 -timeout 20s sh -c "npm install && npm run start"
     networks:
       - node-network
-    ports:
-      - "3000:3000"
     depends_on:
       - mysql
   mysql:
-    image: mysql:8
+    build: ./data
     command: --innodb-use-native-aio=0
     container_name: mysql
     restart: always
